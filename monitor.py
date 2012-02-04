@@ -20,10 +20,10 @@ CLIENTS = [('dushyant','10.22.6.111'), ('dushyant','10.192.15.205')]
 #Find which files to sync
 class PTmp(ProcessEvent):
     """ Find which files to sync """
-    def __init__(self, mfiles, rfiles, updatedfiles):
+    def __init__(self, mfiles, rfiles, pulledfiles):
         self.mfiles = mfiles
         self.rfiles = rfiles
-        self.updatedfiles = updatedfiles
+        self.pulledfiles = pulledfiles
         
     def process_IN_CREATE(self, event):
         filename = os.path.join(event.path, event.name)
@@ -41,20 +41,17 @@ class PTmp(ProcessEvent):
     
     def process_IN_MODIFY(self, event):
         filename = os.path.join(event.path, event.name)
-        if not self.updatedfiles.__contains__(filename):
+        if not self.pulledfiles.__contains__(filename):
             self.mfiles.add(filename)
             print "Modify: %s" % filename
         else:
-            self.updatedfiles.remove(filename)
+            self.pulledfiles.remove(filename)
         
 
 class Node(object):
     """Base class for client and server"""
     
     def __init__(self, role , ip, uname):
-        self.mfiles = set() #set of modified files
-        self.rfiles = set() #set of removed files
-        self.updatedfiles = set()
         self.role = role
         self.my_ip = ip
         self.my_uname = uname
@@ -70,22 +67,31 @@ class Node(object):
         destpath = p.sub("/home/%s/" % dest_uname, filename)
         print destpath
         return destpath
-    
-#    def pushfile(self, filename, server_uname, server_ip):
-#        """push file 'filename' to the destination machines"""
-#        if (self.role == 'client'):
-#            destinations = SERVERS
-#        else:
-#            destinations = CLIENTS
-#
-#        for (dest_uname, dest_ip) in destinations:
-#            proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, Node.getdestpath(filename, dest_uname))])
-#            print proc.wait()
 
-    def pushfile(self, filename, dest_uname, dest_ip):
+    @staticmethod
+    def rpc_pullfile(dest_ip, filename, source_uname, source_ip):
+        rpc_connect = xmlrpclib.ServerProxy("http://%s:8000/"% dest_ip, allow_none = True)
+        rpc_connect.pullfile(filename, source_uname, source_ip)
+        
+    @staticmethod        
+    def pushfile(filename, dest_uname, dest_ip):
         """push file 'filename' to the destination """
         proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, Node.getdestpath(filename, dest_uname))])
         print proc.wait()
+    
+    def start_server(self):
+        """ Start RPC Server on each node """
+        server = SimpleXMLRPCServer(("0.0.0.0", 8000), allow_none =True)
+        print "Started RPC server. Listening on port 8000..."
+        server.register_instance(self)
+        server.serve_forever()
+            
+class Server(Node):
+    """ Server class"""
+    
+    def __init__(self, role, ip, uname, clients):
+        super(Server, self).__init__(role, ip, uname)
+        self.clients = clients
     
     def pullfile(self, filename, source_uname, source_ip):
         """pull file 'filename' from the source"""
@@ -94,23 +100,40 @@ class Node(object):
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
         print proc.wait()
         
-        if self.role=='server':
-        #SERVER: push file to other clients
-            for (client_uname, client_ip) in CLIENTS:
-                if client_ip == source_ip:
-                    continue
-                else:
-                    #call client pull file
-                    proxy = xmlrpclib.ServerProxy("http://%s:8000/"% client_ip, allow_none = True)
-                    proxy.pullfile(filename, self.my_uname, self.my_ip)
-                    #self.pushfile(my_file, client_uname, client_ip)
-        else:
-        #CLIENT:
-            self.updatefiles.add(my_file) 
+        #SERVER: Call clients to pull this file
+        for (client_uname, client_ip) in CLIENTS:
+            if client_ip == source_ip:
+                continue
+            else:
+                # actual call to client to pull file
+                Node.rpc_pullfile(client_ip, filename, self.my_uname, self.my_ip)
+
+    def activate(self):
+        """ Activate Server Node """
+        self.start_server()
         
-    #Thread 1    
+class Client(Node):
+    """ Client class"""
+    
+    def __init__(self, role, ip, uname, server):
+        super(Client, self).__init__(role, ip, uname)
+        self.server = server
+        self.mfiles = set() #set of modified files
+        self.rfiles = set() #set of removed files
+        self.pulledfiles = set()
+    
+    def pullfile(self, filename, source_uname, source_ip):
+        """pull file 'filename' from the source"""
+        #pull file from the client 'source'
+        my_file = Node.getdestpath(filename, self.my_uname);
+        proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
+        print proc.wait()
+        #CLIENT: update the pulledfiles set
+        self.pulledfiles.add(my_file) 
+
+    #Thread to sync all modified files.
     def syncfiles(self):
-        """Sync all the files present in the mfiles set and update this set"""
+        """Sync all the files present in the mfiles set and pulled this set"""
         mfiles = self.mfiles
         print "sync"
         while True:
@@ -118,21 +141,19 @@ class Node(object):
                 time.sleep(10)
                 for filename in list(mfiles):
                     print filename
-                    #Push this modified file to the server using scp or rsync
-                    proxy = xmlrpclib.ServerProxy("http://%s:8000/"% SERVER_IP, allow_none = True)
-                    proxy.pullfile(filename, self.my_uname, self.my_ip)
-
-#                    self.pushfile(filename, SERVER_UNAME, SERVER_IP)
+                    # Call the server to pull this file
+                    server_ip = self.server[1]
+                    Node.rpc_pullfile(server_ip, filename, self.my_uname, self.my_ip)
                     mfiles.remove(filename)
             except KeyboardInterrupt:
                 break
             
-    #Thread 2
+    #Thread to watch files.
     def watchfiles(self):
         wm = WatchManager()
         # watched events
         mask = pyinotify.IN_DELETE | pyinotify.IN_CREATE | pyinotify.IN_MODIFY 
-        notifier = pyinotify.Notifier(wm, PTmp(self.mfiles, self.rfiles, self.updatedfiles))
+        notifier = pyinotify.Notifier(wm, PTmp(self.mfiles, self.rfiles, self.pulledfiles))
     
         wdd = wm.add_watch('/home/dushyant/projects', mask, rec=False, auto_add=True)
         while True:
@@ -145,18 +166,22 @@ class Node(object):
                 notifier.stop()
                 break
         print self.mfiles
-        
-    def start(self):
-        thread2 = threading.Thread(target=self.syncfiles)
-#        thread2.daemon = True
-        thread2.start()
+
+    def activate_client(self):
+        """ Start threads to find and sync modified files """
+        sync_thread = threading.Thread(target=self.syncfiles)
+        sync_thread.start()
         print "Thread 'syncfiles' started "
         
-        thread1 = threading.Thread(target=self.watchfiles)
-#        thread1.daemon = True
-        thread1.start()
+        watch_thread = threading.Thread(target=self.watchfiles)
+        watch_thread.start()
         print "Thread 'watchfiles' started "
-        
+    
+    def activate(self):
+        """ Activate Client Node """
+        self.activate_client()
+        self.start_server()
+                    
 def main():
     #use argparse to get role, ip, uname
     parser = argparse.ArgumentParser(
@@ -182,28 +207,21 @@ def main():
     logger.setLevel(logging.INFO)    
     logger.addHandler(handler)
     
-    logger.log('Logging started')
-    
-    node = Node(args.role, ip = args.ip, uname = args.uname)
-    
-    if (node.role == 'client'):
-        #CLIENT will start watch and sync demons
-        node.start()
+    logger.info('Logging started')
 
-    #Each node will start RPC Server
-    server = SimpleXMLRPCServer(("0.0.0.0", 8000), allow_none =True)
-    logger.info("Listening on port 8000...")
-    server.register_instance(node)
-    server.serve_forever()
+    config = ConfigParser.ConfigParser()
+    config.read('syncit.cfg')
     
-#    print "started 1"
-#    thread2 = threading.Thread(target=fun2)
-##    thread2.daemon = True
-#    thread2.start()
-#    print "started 2"
-#    thread1 = threading.Thread(target=node.watchfiles())
-##    thread1.daemon = True
-#    thread1.start()
-
+    if (args.role == 'server'):
+        clients = []
+        for key, value in config.items('syncit.clients'):
+            clients.append(tuple(value.split(',')))
+            
+        node = Server(args.role, ip = args.ip, uname = args.uname, clients = clients)
+    else:
+        server_uname, server_ip = config.get('syncit.server', 'server', 1).split(',')    
+        node = Client(args.role, ip = args.ip, uname = args.uname, server = (server_uname, server_ip))
+    node.activate()
+    
 if __name__ == "__main__":
     main()
