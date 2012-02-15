@@ -72,7 +72,12 @@ class Node(object):
     def rpc_pullfile(dest_ip, filename, source_uname, source_ip):
         rpc_connect = xmlrpclib.ServerProxy("http://%s:8000/"% dest_ip, allow_none = True)
         rpc_connect.pullfile(filename, source_uname, source_ip)
-        
+    
+    @staticmethod
+    def rpc_updatefile(dest_ip, filename, source_uname, source_ip):
+        rpc_connect = xmlrpclib.ServerProxy("http://%s:8000/"% dest_ip, allow_none = True)
+        rpc_connect.updatefile(filename, source_uname, source_ip)
+            
     @staticmethod        
     def pushfile(filename, dest_uname, dest_ip):
         """push file 'filename' to the destination """
@@ -108,6 +113,16 @@ class Server(Node):
                 # actual call to client to pull file
                 Node.rpc_pullfile(client_ip, filename, self.my_uname, self.my_ip)
 
+    def updatefile(self, filename, source_uname, source_ip):
+        """Notify clients that this file 'filename' has been modified by the source"""
+        #SERVER: Call clients to pull this file
+        for (client_uname, client_ip) in CLIENTS:
+            if client_ip == source_ip:
+                continue
+            else:
+                # actual call to client to pull file
+                Node.rpc_pullfile(client_ip, filename, self.my_uname, self.my_ip)
+                
     def activate(self):
         """ Activate Server Node """
         self.start_server()
@@ -122,6 +137,15 @@ class Client(Node):
         self.rfiles = set() #set of removed files
         self.pulledfiles = set()
     
+    def pushfile(self, filename, dest_uname, dest_ip):
+        """push file 'filename' to the destination"""
+        #pull file from the client 'source'
+        dest_file = Node.getdestpath(filename, dest_uname)
+        proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, dest_file)])
+        print proc.wait()
+        #CLIENT: update the pulledfiles set
+        #self.pulledfiles.add(my_file)
+        
     def pullfile(self, filename, source_uname, source_ip):
         """pull file 'filename' from the source"""
         #pull file from the client 'source'
@@ -142,8 +166,9 @@ class Client(Node):
                 for filename in list(mfiles):
                     print filename
                     # Call the server to pull this file
-                    server_ip = self.server[1]
-                    Node.rpc_pullfile(server_ip, filename, self.my_uname, self.my_ip)
+                    server_uname, server_ip = self.server
+                    self.pushfile(filename, server_uname, server_ip)
+                    Node.rpc_updatefile(server_ip, filename, self.my_uname, self.my_ip)
                     mfiles.remove(filename)
             except KeyboardInterrupt:
                 break
