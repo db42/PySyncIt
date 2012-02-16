@@ -16,6 +16,7 @@ SERVER_UNAME = 'user'
 SERVERS = [(SERVER_UNAME, SERVER_IP)]
 
 WATCH_DIR = '~/projects'
+KEYSFILE = '~/.ssh/authorized_keys'
 CLIENTS = [('dushyant','10.22.6.111'), ('dushyant','10.192.15.205')]
 
 #Find which files to sync
@@ -129,6 +130,19 @@ class Server(Node):
             else:
                 # actual call to client to pull file
                 Node.rpc_pullfile(client_ip, my_file, self.my_uname, self.my_ip)
+    
+    @staticmethod
+    def addKey(user):
+        """ Add public keys corresponding to user """
+        authfile = os.path.expanduser(KEYSFILE)
+        clientkeyfile = user + '.pub'
+        
+        with open(clientkeyfile, 'r') as fp:
+            clientkey = fp.readline()
+            
+        with open(authfile,'a+') as fp:
+            if clientkey not in fp.readlines():
+                fp.write(clientkey + '\n')
 
     def activate(self):
         """ Activate Server Node """
@@ -249,6 +263,7 @@ def main():
         for key, value in config.items('syncit.clients'):
             client_uname, client_ip = value.split(',') 
             clients.append((client_uname, client_ip))
+            Server.addKey(client_uname)
         node = Server(args.role, ip = args.ip, uname = args.uname, clients = clients)
     else:
         server_uname, server_ip = config.get('syncit.server', 'server', 1).split(',')    
