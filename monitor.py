@@ -15,6 +15,7 @@ SERVER_IP = '10.22.254.60'
 SERVER_UNAME = 'user'
 SERVERS = [(SERVER_UNAME, SERVER_IP)]
 
+WATCH_DIR = '~/projects'
 CLIENTS = [('dushyant','10.22.6.111'), ('dushyant','10.192.15.205')]
 
 #Find which files to sync
@@ -27,8 +28,13 @@ class PTmp(ProcessEvent):
         
     def process_IN_CREATE(self, event):
         filename = os.path.join(event.path, event.name)
-        self.mfiles.add(filename)
-        print "Create: %s" %  filename
+        if not self.pulledfiles.__contains__(filename):
+            self.mfiles.add(filename)
+            print "Create: %s" %  filename
+        else:
+            pass
+            #self.pulledfiles.remove(filename)
+
 
     def process_IN_DELETE(self, event):
         filename = os.path.join(event.path, event.name)
@@ -83,14 +89,14 @@ class Node(object):
         """push file 'filename' to the destination """
         proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, Node.getdestpath(filename, dest_uname))])
         print proc.wait()
-    
+
     def start_server(self):
         """ Start RPC Server on each node """
         server = SimpleXMLRPCServer(("0.0.0.0", 8000), allow_none =True)
         print "Started RPC server. Listening on port 8000..."
         server.register_instance(self)
         server.serve_forever()
-            
+
 class Server(Node):
     """ Server class"""
     
@@ -116,17 +122,18 @@ class Server(Node):
     def updatefile(self, filename, source_uname, source_ip):
         """Notify clients that this file 'filename' has been modified by the source"""
         #SERVER: Call clients to pull this file
-        for (client_uname, client_ip) in CLIENTS:
+        my_file = Node.getdestpath(filename, self.my_uname);
+        for (client_uname, client_ip) in self.clients:
             if client_ip == source_ip:
                 continue
             else:
                 # actual call to client to pull file
-                Node.rpc_pullfile(client_ip, filename, self.my_uname, self.my_ip)
-                
+                Node.rpc_pullfile(client_ip, my_file, self.my_uname, self.my_ip)
+
     def activate(self):
         """ Activate Server Node """
         self.start_server()
-        
+    
 class Client(Node):
     """ Client class"""
     
@@ -149,17 +156,17 @@ class Client(Node):
     def pullfile(self, filename, source_uname, source_ip):
         """pull file 'filename' from the source"""
         #pull file from the client 'source'
-        my_file = Node.getdestpath(filename, self.my_uname);
+        my_file = Node.getdestpath(filename, self.my_uname)
+        #CLIENT: update the pulledfiles set
+        self.pulledfiles.add(my_file)
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
         print proc.wait()
-        #CLIENT: update the pulledfiles set
-        self.pulledfiles.add(my_file) 
+
 
     #Thread to sync all modified files.
     def syncfiles(self):
         """Sync all the files present in the mfiles set and pulled this set"""
         mfiles = self.mfiles
-        print "sync"
         while True:
             try:
                 time.sleep(10)
@@ -180,7 +187,7 @@ class Client(Node):
         mask = pyinotify.IN_DELETE | pyinotify.IN_CREATE | pyinotify.IN_MODIFY 
         notifier = pyinotify.Notifier(wm, PTmp(self.mfiles, self.rfiles, self.pulledfiles))
     
-        wdd = wm.add_watch('/home/dushyant/projects', mask, rec=False, auto_add=True)
+        wdd = wm.add_watch(os.path.expanduser(WATCH_DIR), mask, rec=False, auto_add=True)
         while True:
             try:
                 time.sleep(5)
@@ -201,7 +208,7 @@ class Client(Node):
         watch_thread = threading.Thread(target=self.watchfiles)
         watch_thread.start()
         print "Thread 'watchfiles' started "
-    
+        
     def activate(self):
         """ Activate Client Node """
         self.activate_client()
@@ -240,8 +247,8 @@ def main():
     if (args.role == 'server'):
         clients = []
         for key, value in config.items('syncit.clients'):
-            clients.append(tuple(value.split(',')))
-            
+            client_uname, client_ip = value.split(',') 
+            clients.append((client_uname, client_ip))
         node = Server(args.role, ip = args.ip, uname = args.uname, clients = clients)
     else:
         server_uname, server_ip = config.get('syncit.server', 'server', 1).split(',')    
