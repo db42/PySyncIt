@@ -41,6 +41,10 @@ def mark_available(dest_ip, dest_port, source_ip):
     print rpc_connect.system.listMethods()
     rpc_connect.mark_available(source_ip)
 
+@safeRPC
+def getClientPublicKey(dest_ip, dest_port):
+    rpc_connect = xmlrpclib.ServerProxy("http://%s:%s/"% (dest_ip, dest_port), allow_none = True)
+    return  rpc_connect.getPublicKey()
 
 def findAvailable(dest_ip, dest_port):
     """

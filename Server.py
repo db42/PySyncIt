@@ -77,30 +77,28 @@ class Server(Node):
                 client.available = True
                 print "client ", client_ip, "available"
                 #TODO (see,send) pending modified files for this client
+                self.addClientKeys(client)
 
     def findAvailable(self):
         for client in self.clients:
             client.available = rpc.findAvailable(client.ip, client.port)
             print "client marked available"
+            self.addClientKeys(client)
 
     def getAuthFile(self):
         return os.path.join("/home",self.my_uname,".ssh/authorized_keys")
 
-    def addClientKeys(self):
+    def addClientKeys(self, client):
         """ Add public keys corresponding to user """
         authfile =  self.getAuthFile()
+        clientPublicKey = rpc.getClientPublicKey(client.ip, client.port)
 
-        for client in self.clients:
-            clientkeyfile = client.uname + '.pub'
+        if clientPublicKey is None:
+            return
 
-            with open(clientkeyfile, 'r') as fp:
-                clientkey = fp.readline()
-
-            with open(authfile,'a+') as fp:
-                print "try to add key"
-                if clientkey not in fp.readlines():
-                    print "added key"
-                    fp.write(clientkey + '\n')
+        with open(authfile,'a+') as fp:
+            if clientPublicKey not in fp.readlines():
+                fp.write(clientPublicKey + '\n')
 
     def activate(self):
         """ Activate Server Node """
@@ -108,6 +106,5 @@ class Server(Node):
         sync_thread.start()
         print "Thread 'syncfiles' started "
 
-        self.addClientKeys()
         self.start_server()
         self.findAvailable()

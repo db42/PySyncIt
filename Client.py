@@ -77,6 +77,27 @@ class Client(Node):
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
         print proc.wait()
 
+    def getPublicKey(self):
+        """
+        Return public key of this client
+        """
+        pubKey = None
+        print "public key called"
+        pubKeyDirName = os.path.join("/home",self.my_uname,".ssh")
+        print pubKeyDirName
+        for tuple in os.walk(pubKeyDirName):
+            dirname, dirnames, filenames = tuple
+            break
+        print filenames
+        for filename in filenames:
+
+            if '.pub' in filename:
+                pubKeyFilePath = os.path.join(dirname, filename)
+                print pubKeyFilePath
+                pubKey = open(pubKeyFilePath,'r').readline()
+                print pubKey
+
+        return pubKey
 
     def findModified(self):
         """
@@ -156,13 +177,13 @@ class Client(Node):
         #Mark availability
         server_uname, server_ip, server_port = self.server
         print "client call to mark available"
-        rpc.mark_available(server_ip, server_port, self.my_ip)
 
         self.activate_client()
         rpc_thread = threading.Thread(target=self.start_server)
         rpc_thread.start()
 #        self.start_server()
 
+        rpc.mark_available(server_ip, server_port, self.my_ip)
         print "find modified"
         #Find Modified
         #TODO
