@@ -66,7 +66,6 @@ def main():
         for key, value in config.items('syncit.clients'):
             client_uname, client_ip, client_port = value.split(',')
             clients.append(ClientData(client_uname, client_ip, client_port))
-            Server.addKey(client_uname)
         node = Server(args.role, ip = args.ip, port = args.port, uname = args.uname, clients = clients)
     else:
 

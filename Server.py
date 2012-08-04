@@ -9,7 +9,6 @@ import subprocess
 import os
 import rpc
 
-KEYSFILE = '~/.ssh/authorized_keys'
 class ClientData(object):
     """
     Data corresponding to each client residing in server object
@@ -84,18 +83,24 @@ class Server(Node):
             client.available = rpc.findAvailable(client.ip, client.port)
             print "client marked available"
 
-    @staticmethod
-    def addKey(user):
+    def getAuthFile(self):
+        return os.path.join("/home",self.my_uname,".ssh/authorized_keys")
+
+    def addClientKeys(self):
         """ Add public keys corresponding to user """
-        authfile = os.path.expanduser(KEYSFILE)
-        clientkeyfile = user + '.pub'
+        authfile =  self.getAuthFile()
 
-        with open(clientkeyfile, 'r') as fp:
-            clientkey = fp.readline()
+        for client in self.clients:
+            clientkeyfile = client.uname + '.pub'
 
-        with open(authfile,'a+') as fp:
-            if clientkey not in fp.readlines():
-                fp.write(clientkey + '\n')
+            with open(clientkeyfile, 'r') as fp:
+                clientkey = fp.readline()
+
+            with open(authfile,'a+') as fp:
+                print "try to add key"
+                if clientkey not in fp.readlines():
+                    print "added key"
+                    fp.write(clientkey + '\n')
 
     def activate(self):
         """ Activate Server Node """
@@ -103,5 +108,6 @@ class Server(Node):
         sync_thread.start()
         print "Thread 'syncfiles' started "
 
+        self.addClientKeys()
         self.start_server()
         self.findAvailable()
