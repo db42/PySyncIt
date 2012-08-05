@@ -14,10 +14,15 @@ def safe_rpc(fn):
         decorator to add try/catch to rpc function calls
         """
         try:
-            return fn(*args)
+            result = fn(*args)
+            if result is None:
+                result = "success"
+
+            return result
         except socket.error as e:
             if e.errno == errno.ECONNREFUSED:
                 logger.critical("Problem connecting to rpc - no rpc server running. function: %s", fn.func_name)
+                return None #rpc request failed
             else:
                 raise
 

@@ -135,7 +135,9 @@ class Client(Node):
                     # Call the server to pull this file
                     server_uname, server_ip, server_port = self.server
                     self.push_file(filename, server_uname, server_ip)
-                    rpc.update_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
+                    rpc_status = rpc.update_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
+                    if rpc_status is None:
+                        continue
                     mfiles.remove(filename)
 
 

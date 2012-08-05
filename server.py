@@ -63,7 +63,11 @@ class Server(Node):
                     if client.available:
                         for file in client.mfiles.list():
                             # actual call to client to pull file
-                            rpc.pull_file(client.ip, client.port, file, self.my_uname, self.my_ip)
+                            rpc_status = rpc.pull_file(client.ip, client.port, file, self.my_uname, self.my_ip)
+
+                            if rpc_status is None:
+                                client.available = False
+                                continue
                             client.mfiles.remove(file)
                             logger.debug("actual sync")
             except KeyboardInterrupt:
