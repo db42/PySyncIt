@@ -3,8 +3,8 @@ import logging
 import ConfigParser
 import os
 
-from Server import Server, ClientData
-from Client import Client
+from server import Server, ClientData
+from client import Client
 
 class FileData(object):
     def __init__(self, file_name, time, owner):

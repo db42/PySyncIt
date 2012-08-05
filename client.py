@@ -6,8 +6,8 @@ import subprocess
 import time
 import threading
 import os
-from Node import Node
-from PersistentSet import PersistentSet
+from node import Node
+from persistence import PersistentSet
 
 __author__ = 'dushyant'
 

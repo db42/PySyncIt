@@ -1,8 +1,8 @@
 import logging
 import threading
 import time
-from Node import Node
-from PersistentSet import PersistentSet
+from node import Node
+from persistence import PersistentSet
 import subprocess
 import os
 import rpc
