@@ -64,7 +64,7 @@ def main():
         watch_dirs.append(os.path.expanduser(value))
 
     ensure_dir(watch_dirs, args.uname)
-    logging.debug( "watched dirs %s" ,watch_dirs)
+    logger.debug( "watched dirs %s" ,watch_dirs)
     #TODO try to remove if-else using OO
     if (args.role == 'server'):
         clients = []
