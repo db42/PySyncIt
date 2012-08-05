@@ -32,8 +32,8 @@ class Server(Node):
         """pull file 'filename' from the source"""
         my_file = Node.get_dest_path(filename, self.my_uname);
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
-        returnStatus = proc.wait()
-        logger.debug("returned status %s", returnStatus)
+        return_status = proc.wait()
+        logger.debug("returned status %s", return_status)
 
         #SERVER: Call clients to pull this file
         for client in self.clients:
@@ -92,14 +92,14 @@ class Server(Node):
     def add_client_keys(self, client):
         """ Add public keys corresponding to user """
         authfile =  self.get_authfile()
-        clientPublicKey = rpc.get_client_public_key(client.ip, client.port)
+        client_pub_key = rpc.get_client_public_key(client.ip, client.port)
 
-        if clientPublicKey is None:
+        if client_pub_key is None:
             return
 
         with open(authfile,'a+') as fp:
-            if clientPublicKey not in fp.readlines():
-                fp.write(clientPublicKey + '\n')
+            if client_pub_key not in fp.readlines():
+                fp.write(client_pub_key + '\n')
 
     def activate(self):
         """ Activate Server Node """

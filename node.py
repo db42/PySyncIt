@@ -39,8 +39,8 @@ class Node(object):
     def push_file(filename, dest_uname, dest_ip):
         """push file 'filename' to the destination """
         proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, Node.get_dest_path(filename, dest_uname))])
-        returnStatus = proc.wait()
-        logger.debug("returned status %s",returnStatus)
+        return_status = proc.wait()
+        logger.debug("returned status %s",return_status)
 
 
     def start_server(self):

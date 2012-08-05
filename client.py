@@ -19,16 +19,16 @@ class PTmp(ProcessEvent):
     def __init__(self, mfiles, rfiles, pulledfiles):
         self.mfiles = mfiles
         self.rfiles = rfiles
-        self.pulledfiles = pulledfiles
+        self.pulled_files = pulledfiles
 
     def process_IN_CREATE(self, event):
         filename = os.path.join(event.path, event.name)
-        if not self.pulledfiles.__contains__(filename):
+        if not self.pulled_files.__contains__(filename):
             self.mfiles.add(filename)
             logger.info("Created file: %s" ,  filename)
         else:
             pass
-            self.pulledfiles.remove(filename)
+            self.pulled_files.remove(filename)
 
     def process_IN_DELETE(self, event):
         filename = os.path.join(event.path, event.name)
@@ -41,11 +41,11 @@ class PTmp(ProcessEvent):
 
     def process_IN_MODIFY(self, event):
         filename = os.path.join(event.path, event.name)
-        if not self.pulledfiles.__contains__(filename):
+        if not self.pulled_files.__contains__(filename):
             self.mfiles.add(filename)
             logger.info("Modified file: %s" , filename)
         else:
-            self.pulledfiles.remove(filename)
+            self.pulled_files.remove(filename)
 
 class Client(Node):
     """ Client class"""
@@ -65,8 +65,8 @@ class Client(Node):
         """
         dest_file = Node.get_dest_path(filename, dest_uname)
         proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, dest_file)])
-        returnStatus = proc.wait()
-        logger.debug("returned status %s", returnStatus)
+        return_status = proc.wait()
+        logger.debug("returned status %s", return_status)
         #CLIENT: update the pulledfiles set
         #self.pulledfiles.add(my_file)
 
@@ -79,29 +79,29 @@ class Client(Node):
         #CLIENT: update the pulledfiles set
         self.pulled_files.add(my_file)
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
-        returnStatus = proc.wait()
-        logger.debug("returned status %s", returnStatus)
+        return_status = proc.wait()
+        logger.debug("returned status %s", return_status)
 
     def get_public_key(self):
         """
         Return public key of this client
         """
-        pubKey = None
-        pubKeyDirName = os.path.join("/home",self.my_uname,".ssh")
-        logger.debug("public key directory %s", pubKeyDirName)
-        for tuple in os.walk(pubKeyDirName):
+        pubkey = None
+        pubkey_dirname = os.path.join("/home",self.my_uname,".ssh")
+        logger.debug("public key directory %s", pubkey_dirname)
+        for tuple in os.walk(pubkey_dirname):
             dirname, dirnames, filenames = tuple
             break
         logger.debug("public key dir files %s", filenames)
         for filename in filenames:
 
             if '.pub' in filename:
-                pubKeyFilePath = os.path.join(dirname, filename)
-                logger.debug("public key file %s", pubKeyFilePath)
-                pubKey = open(pubKeyFilePath,'r').readline()
-                logger.debug("public key %s", pubKey)
+                pubkey_filepath = os.path.join(dirname, filename)
+                logger.debug("public key file %s", pubkey_filepath)
+                pubkey = open(pubkey_filepath,'r').readline()
+                logger.debug("public key %s", pubkey)
 
-        return pubKey
+        return pubkey
 
     def find_modified(self):
         """
