@@ -30,7 +30,7 @@ class Server(Node):
 
     def pull_file(self, filename, source_uname, source_ip):
         """pull file 'filename' from the source"""
-        my_file = Node.get_dest_path(filename, self.my_uname);
+        my_file = Node.get_dest_path(filename, self.my_uname)
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
         return_status = proc.wait()
         logger.debug("returned status %s", return_status)
@@ -46,7 +46,7 @@ class Server(Node):
     def update_file(self, filename, source_uname, source_ip, source_port):
         """Notify clients that this file 'filename' has been modified by the source"""
         #SERVER: Call clients to pull this file
-        my_file = Node.get_dest_path(filename, self.my_uname);
+        my_file = Node.get_dest_path(filename, self.my_uname)
         for client in self.clients:
             logger.debug("tuple %s : %s",(client.ip, client.port), (source_ip, source_port))
             if (client.ip, client.port) == (source_ip, source_port):
