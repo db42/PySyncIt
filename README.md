@@ -59,7 +59,7 @@ git clone git@github.com:db42/PySyncIt
 
 #### How PySyncIt Works : Application Logic:
 
-![Alt text](https://github.com/db42/PySyncIt/blob/master/design.png, "PySyncIt Design")
+![Alt text](http://i.imgur.com/j6cMA.png, "PySyncIt Design")
 
 The application works on simple client/server design concept. Different machines
 that are to be kept in sync will behave as clients and, either one of them or a
