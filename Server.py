@@ -27,7 +27,6 @@ class Server(Node):
     def __init__(self, role, ip, uname, port, clients):
         super(Server, self).__init__(role, ip, port, uname)
         self.clients = clients
-        self.count = 1
 
     def pullfile(self, filename, source_uname, source_ip):
         """pull file 'filename' from the source"""
@@ -67,7 +66,6 @@ class Server(Node):
                             rpc.pullfile(client.ip, client.port, file, self.my_uname, self.my_ip)
                             client.mfiles.remove(file)
                             logger.debug("actual sync")
-                self.count += 1
             except KeyboardInterrupt:
                 break
 
