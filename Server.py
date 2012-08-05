@@ -1,7 +1,10 @@
+import logging
 import threading
 import time
 
 __author__ = 'dushyant'
+
+logger = logging.getLogger('syncIt')
 
 from Node import Node
 from PersistentSet import PersistentSet
@@ -31,7 +34,8 @@ class Server(Node):
         """pull file 'filename' from the source"""
         my_file = Node.getdestpath(filename, self.my_uname);
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
-        print proc.wait()
+        returnStatus = proc.wait()
+        logger.debug("returned status %s", returnStatus)
 
         #SERVER: Call clients to pull this file
         for client in self.clients:
@@ -50,20 +54,20 @@ class Server(Node):
                 continue
             else:
                 client.mfiles.add(my_file)
-                print "add to list"
+                logger.debug("add file to modified list")
 
     def syncFiles(self):
         while True:
             try:
                 time.sleep(10)
                 for client in self.clients:
-                    print "list ",client.mfiles.list(), client.available
+                    logger.debug( "list of files for client %s, availability %s",client.mfiles.list(), client.available)
                     if client.available:
                         for file in client.mfiles.list():
                             # actual call to client to pull file
                             rpc.pullfile(client.ip, client.port, file, self.my_uname, self.my_ip)
                             client.mfiles.remove(file)
-                            print "actual sync"
+                            logger.debug("actual sync")
                 self.count += 1
             except KeyboardInterrupt:
                 break
@@ -71,18 +75,18 @@ class Server(Node):
 
     def mark_available(self, client_ip):
         """Mark client as available"""
-        print "mark available call received"
+        logger.debug("mark available call received")
         for client in self.clients:
             if client_ip == client.ip:
                 client.available = True
-                print "client ", client_ip, "available"
+                logger.debug("client with ip %s, marked available", client_ip)
                 #TODO (see,send) pending modified files for this client
                 self.addClientKeys(client)
 
     def findAvailable(self):
         for client in self.clients:
             client.available = rpc.findAvailable(client.ip, client.port)
-            print "client marked available"
+            logger.debug("client marked available")
             self.addClientKeys(client)
 
     def getAuthFile(self):
@@ -104,7 +108,7 @@ class Server(Node):
         """ Activate Server Node """
         sync_thread = threading.Thread(target=self.syncFiles)
         sync_thread.start()
-        print "Thread 'syncfiles' started "
+        logger.info("Thread 'syncfiles' started ")
 
         self.findAvailable()
         self.start_server()

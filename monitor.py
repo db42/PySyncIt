@@ -13,6 +13,14 @@ class FileData(object):
         self.owner = owner
 
 
+def setupLogging():
+    #Start Logging
+    logger = logging.getLogger('syncIt')
+    #handler = logging.FileHandler('/tmp/syncIt.log')
+    handler = logging.StreamHandler()
+    logger.setLevel(logging.INFO)
+    logger.addHandler(handler)
+
 def ensure_dir(dirs):
     """
     create directories to be synced if not exist
@@ -40,13 +48,9 @@ def main():
         '-role', help='Specify the role of this machine')
     
     args = parser.parse_args()
-    
-    #Start Logging
+
+    setupLogging()
     logger = logging.getLogger('syncIt')
-    #handler = logging.FileHandler('/tmp/syncIt.log')
-    handler = logging.StreamHandler()
-    logger.setLevel(logging.INFO)
-    logger.addHandler(handler)
     logger.info('Logging started')
 
     config = ConfigParser.ConfigParser()
@@ -55,11 +59,10 @@ def main():
     #Get dirs to watch
     watch_dirs = []
     for key, value in config.items('syncit.dirs'):
-        print value
         watch_dirs.append(os.path.expanduser(value))
 
     ensure_dir(watch_dirs)
-    print "dirs " ,watch_dirs
+    logging.debug( "watched dirs %s" ,watch_dirs)
     #TODO try to remove if-else using OO
     if (args.role == 'server'):
         clients = []
