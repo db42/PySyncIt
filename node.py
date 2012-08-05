@@ -23,7 +23,7 @@ class Node(object):
     def __init__(self, role , ip, port, uname):
         self.role = role
         self.my_ip = ip
-        self.port = int(port)
+        self.port = port
         self.my_uname = uname
 
     @staticmethod

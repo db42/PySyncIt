@@ -70,12 +70,12 @@ def main():
         clients = []
         for key, value in config.items('syncit.clients'):
             client_uname, client_ip, client_port = value.split(',')
-            clients.append(ClientData(client_uname, client_ip, client_port))
-        node = Server(args.role, ip = args.ip, port = args.port, uname = args.uname, clients = clients)
+            clients.append(ClientData(client_uname, client_ip, int(client_port)))
+        node = Server(args.role, ip = args.ip, port = int(args.port), uname = args.uname, clients = clients)
     else:
 
         server_uname, server_ip, server_port = config.get('syncit.server', 'server', 1).split(',')
-        node = Client(role = args.role, ip = args.ip, port = args.port, uname = args.uname, watch_dirs=watch_dirs, server = (server_uname, server_ip, server_port))
+        node = Client(role = args.role, ip = args.ip, port = int(args.port), uname = args.uname, watch_dirs=watch_dirs, server = (server_uname, server_ip, server_port))
     node.activate()
     
 if __name__ == "__main__":
