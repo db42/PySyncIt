@@ -28,21 +28,6 @@ class Server(Node):
         super(Server, self).__init__(role, ip, port, uname)
         self.clients = clients
 
-    def pull_file(self, filename, source_uname, source_ip):
-        """pull file 'filename' from the source"""
-        my_file = Node.get_dest_path(filename, self.my_uname)
-        proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
-        return_status = proc.wait()
-        logger.debug("returned status %s", return_status)
-
-        #SERVER: Call clients to pull this file
-        for client in self.clients:
-            if client.ip == source_ip:
-                continue
-            else:
-                # actual call to client to pull file
-                rpc.pull_file(client.ip, client.port, filename, self.my_uname, self.my_ip)
-
     def update_file(self, filename, source_uname, source_ip, source_port):
         """Notify clients that this file 'filename' has been modified by the source"""
         #SERVER: Call clients to pull this file
