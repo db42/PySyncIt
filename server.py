@@ -48,6 +48,7 @@ class Server(Node):
         #SERVER: Call clients to pull this file
         my_file = Node.get_dest_path(filename, self.my_uname);
         for client in self.clients:
+            logger.debug("tuple %s : %s",(client.ip, client.port), (source_ip, source_port))
             if (client.ip, client.port) == (source_ip, source_port):
                 continue
             else:
