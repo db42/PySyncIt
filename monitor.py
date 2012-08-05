@@ -2,6 +2,7 @@ import argparse
 import logging
 import ConfigParser
 import os
+from node import Node
 
 from server import Server, ClientData
 from client import Client
@@ -21,13 +22,14 @@ def setup_logging():
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
 
-def ensure_dir(dirs):
+def ensure_dir(dirs, user_name):
     """
     create directories to be synced if not exist
     """
     for dir in dirs:
-        if not os.path.isdir(dir):
-            os.makedirs(dir)
+        my_dir = Node.get_dest_path(dir, user_name)
+        if not os.path.isdir(my_dir):
+            os.makedirs(my_dir)
 
 def main():
     #use argparse to get role, ip, uname
@@ -61,7 +63,7 @@ def main():
     for key, value in config.items('syncit.dirs'):
         watch_dirs.append(os.path.expanduser(value))
 
-    ensure_dir(watch_dirs)
+    ensure_dir(watch_dirs, args.uname)
     logging.debug( "watched dirs %s" ,watch_dirs)
     #TODO try to remove if-else using OO
     if (args.role == 'server'):
