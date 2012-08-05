@@ -1,16 +1,15 @@
 import logging
 import threading
 import time
-
-__author__ = 'dushyant'
-
-logger = logging.getLogger('syncIt')
-
 from Node import Node
 from PersistentSet import PersistentSet
 import subprocess
 import os
 import rpc
+
+__author__ = 'dushyant'
+
+logger = logging.getLogger('syncIt')
 
 class ClientData(object):
     """

@@ -2,7 +2,6 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 import logging
 import re
 import subprocess
-import threading
 
 __author__ = 'dushyant'
 
