@@ -7,10 +7,7 @@ the core of this application, all files are transferred over the network using
 'scp'.
 
 The focus of application's design has been to cover this basic use-case and cover it well. I have tried to take
-care of the corner issues that could arise.
-
-Right now, some useful features are implemented in this application.
-1. You can specify any number of folders to sync.
+care of the corner issues that could arise. Some useful features are implemented in this application. For example, you can specify any number of folders to sync.
 
 At this point, this application has many limitations. But, due to the design of this application, I believe it shouldn't require much
 effort to get rid of these limitations.
@@ -29,7 +26,6 @@ PySyncIt is written only for Linux (tested for Ubuntu).
 All you need is python installed on your system and you are ready to go. However, there may be some python modules that you need to install.
 
 External Python Modules:
-
 ```
 pyinotify
 ```
@@ -63,7 +59,7 @@ git clone git@github.com:db42/PySyncIt
 
 #### How PySyncIt Works : Application Logic:
 
-![Alt text](design.png "PySyncIt Design")
+![Alt text](https://github.com/db42/PySyncIt/blob/master/design.png, "PySyncIt Design")
 
 The application works on simple client/server design concept. Different machines
 that are to be kept in sync will behave as clients and, either one of them or a

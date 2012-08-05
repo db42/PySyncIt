@@ -106,5 +106,6 @@ class Server(Node):
         sync_thread.start()
         print "Thread 'syncfiles' started "
 
-        self.start_server()
         self.findAvailable()
+        self.start_server()
+
