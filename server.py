@@ -43,12 +43,12 @@ class Server(Node):
                 # actual call to client to pull file
                 rpc.pull_file(client.ip, client.port, filename, self.my_uname, self.my_ip)
 
-    def update_file(self, filename, source_uname, source_ip):
+    def update_file(self, filename, source_uname, source_ip, source_port):
         """Notify clients that this file 'filename' has been modified by the source"""
         #SERVER: Call clients to pull this file
         my_file = Node.get_dest_path(filename, self.my_uname);
         for client in self.clients:
-            if client.ip == source_ip:
+            if (client.ip, client.port) == (source_ip, source_port):
                 continue
             else:
                 client.mfiles.add(my_file)
@@ -70,11 +70,11 @@ class Server(Node):
                 break
 
 
-    def mark_available(self, client_ip):
+    def mark_available(self, client_ip, client_port):
         """Mark client as available"""
         logger.debug("mark available call received")
         for client in self.clients:
-            if client_ip == client.ip:
+            if (client_ip, client_port) == (client.ip, client.port):
                 client.available = True
                 logger.debug("client with ip %s, marked available", client_ip)
                 #TODO (see,send) pending modified files for this client

@@ -135,7 +135,7 @@ class Client(Node):
                     # Call the server to pull this file
                     server_uname, server_ip, server_port = self.server
                     self.push_file(filename, server_uname, server_ip)
-                    rpc.update_file(server_ip, server_port, filename, self.my_uname, self.my_ip)
+                    rpc.update_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
                     mfiles.remove(filename)
 
 
@@ -184,7 +184,7 @@ class Client(Node):
 #        self.start_server()
 
         logger.debug("client call to mark available to the server")
-        rpc.mark_available(server_ip, server_port, self.my_ip)
+        rpc.mark_available(server_ip, server_port, self.my_ip, self.port)
         logger.debug("find modified files")
         #Find Modified
         #TODO

@@ -29,19 +29,19 @@ def pull_file(dest_ip, dest_port, filename, source_uname, source_ip):
     rpc_connect.pull_file(filename, source_uname, source_ip)
 
 @safe_rpc
-def update_file(dest_ip, dest_port, filename, source_uname, source_ip):
+def update_file(dest_ip, dest_port, filename, source_uname, source_ip, source_port):
     rpc_connect = xmlrpclib.ServerProxy("http://%s:%s/"% (dest_ip, dest_port), allow_none = True)
-    rpc_connect.update_file(filename, source_uname, source_ip)
+    rpc_connect.update_file(filename, source_uname, source_ip, source_port)
 
 @safe_rpc
-def mark_available(dest_ip, dest_port, source_ip):
+def mark_available(dest_ip, dest_port, source_ip, source_port):
     """
     rpc call to marks client as available
     """
     rpc_connect = xmlrpclib.ServerProxy("http://%s:%s/"% (dest_ip, dest_port), allow_none = True)
     logger.debug("rpc call to mark available")
     logger.debug("available methods on rpc server %s", rpc_connect.system.listMethods())
-    rpc_connect.mark_available(source_ip)
+    rpc_connect.mark_available(source_ip, source_port)
 
 @safe_rpc
 def get_client_public_key(dest_ip, dest_port):
