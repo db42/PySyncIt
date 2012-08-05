@@ -8,8 +8,8 @@ __author__ = 'dushyant'
 
 logger = logging.getLogger('syncIt')
 
-def safeRPC(fn):
-    def saveFn(*args):
+def safe_rpc(fn):
+    def safe_fn(*args):
         """
         decorator to add try/catch to rpc function calls
         """
@@ -21,19 +21,19 @@ def safeRPC(fn):
             else:
                 raise
 
-    return saveFn
+    return safe_fn
 
-@safeRPC
-def pullfile(dest_ip, dest_port, filename, source_uname, source_ip):
+@safe_rpc
+def pull_file(dest_ip, dest_port, filename, source_uname, source_ip):
     rpc_connect = xmlrpclib.ServerProxy("http://%s:%s/"% (dest_ip, dest_port), allow_none = True)
-    rpc_connect.pullfile(filename, source_uname, source_ip)
+    rpc_connect.pull_file(filename, source_uname, source_ip)
 
-@safeRPC
-def updatefile(dest_ip, dest_port, filename, source_uname, source_ip):
+@safe_rpc
+def update_file(dest_ip, dest_port, filename, source_uname, source_ip):
     rpc_connect = xmlrpclib.ServerProxy("http://%s:%s/"% (dest_ip, dest_port), allow_none = True)
-    rpc_connect.updatefile(filename, source_uname, source_ip)
+    rpc_connect.update_file(filename, source_uname, source_ip)
 
-@safeRPC
+@safe_rpc
 def mark_available(dest_ip, dest_port, source_ip):
     """
     rpc call to marks client as available
@@ -43,12 +43,12 @@ def mark_available(dest_ip, dest_port, source_ip):
     logger.debug("available methods on rpc server %s", rpc_connect.system.listMethods())
     rpc_connect.mark_available(source_ip)
 
-@safeRPC
-def getClientPublicKey(dest_ip, dest_port):
+@safe_rpc
+def get_client_public_key(dest_ip, dest_port):
     rpc_connect = xmlrpclib.ServerProxy("http://%s:%s/"% (dest_ip, dest_port), allow_none = True)
-    return  rpc_connect.getPublicKey()
+    return  rpc_connect.get_public_key()
 
-def findAvailable(dest_ip, dest_port):
+def find_available(dest_ip, dest_port):
     """
     rpc call to find client's rpc availability
     """

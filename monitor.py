@@ -13,7 +13,7 @@ class FileData(object):
         self.owner = owner
 
 
-def setupLogging():
+def setup_logging():
     #Start Logging
     logger = logging.getLogger('syncIt')
     #handler = logging.FileHandler('/tmp/syncIt.log')
@@ -49,7 +49,7 @@ def main():
     
     args = parser.parse_args()
 
-    setupLogging()
+    setup_logging()
     logger = logging.getLogger('syncIt')
     logger.info('Logging started')
 

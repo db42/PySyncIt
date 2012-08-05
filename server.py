@@ -28,9 +28,9 @@ class Server(Node):
         super(Server, self).__init__(role, ip, port, uname)
         self.clients = clients
 
-    def pullfile(self, filename, source_uname, source_ip):
+    def pull_file(self, filename, source_uname, source_ip):
         """pull file 'filename' from the source"""
-        my_file = Node.getdestpath(filename, self.my_uname);
+        my_file = Node.get_dest_path(filename, self.my_uname);
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
         returnStatus = proc.wait()
         logger.debug("returned status %s", returnStatus)
@@ -41,12 +41,12 @@ class Server(Node):
                 continue
             else:
                 # actual call to client to pull file
-                rpc.pullfile(client.ip, client.port, filename, self.my_uname, self.my_ip)
+                rpc.pull_file(client.ip, client.port, filename, self.my_uname, self.my_ip)
 
-    def updatefile(self, filename, source_uname, source_ip):
+    def update_file(self, filename, source_uname, source_ip):
         """Notify clients that this file 'filename' has been modified by the source"""
         #SERVER: Call clients to pull this file
-        my_file = Node.getdestpath(filename, self.my_uname);
+        my_file = Node.get_dest_path(filename, self.my_uname);
         for client in self.clients:
             if client.ip == source_ip:
                 continue
@@ -54,7 +54,7 @@ class Server(Node):
                 client.mfiles.add(my_file)
                 logger.debug("add file to modified list")
 
-    def syncFiles(self):
+    def sync_files(self):
         while True:
             try:
                 time.sleep(10)
@@ -63,7 +63,7 @@ class Server(Node):
                     if client.available:
                         for file in client.mfiles.list():
                             # actual call to client to pull file
-                            rpc.pullfile(client.ip, client.port, file, self.my_uname, self.my_ip)
+                            rpc.pull_file(client.ip, client.port, file, self.my_uname, self.my_ip)
                             client.mfiles.remove(file)
                             logger.debug("actual sync")
             except KeyboardInterrupt:
@@ -78,21 +78,21 @@ class Server(Node):
                 client.available = True
                 logger.debug("client with ip %s, marked available", client_ip)
                 #TODO (see,send) pending modified files for this client
-                self.addClientKeys(client)
+                self.add_client_keys(client)
 
-    def findAvailable(self):
+    def find_available_clients(self):
         for client in self.clients:
-            client.available = rpc.findAvailable(client.ip, client.port)
+            client.available = rpc.find_available(client.ip, client.port)
             logger.debug("client marked available")
-            self.addClientKeys(client)
+            self.add_client_keys(client)
 
-    def getAuthFile(self):
+    def get_authfile(self):
         return os.path.join("/home",self.my_uname,".ssh/authorized_keys")
 
-    def addClientKeys(self, client):
+    def add_client_keys(self, client):
         """ Add public keys corresponding to user """
-        authfile =  self.getAuthFile()
-        clientPublicKey = rpc.getClientPublicKey(client.ip, client.port)
+        authfile =  self.get_authfile()
+        clientPublicKey = rpc.get_client_public_key(client.ip, client.port)
 
         if clientPublicKey is None:
             return
@@ -103,10 +103,10 @@ class Server(Node):
 
     def activate(self):
         """ Activate Server Node """
-        sync_thread = threading.Thread(target=self.syncFiles)
+        sync_thread = threading.Thread(target=self.sync_files)
         sync_thread.start()
         logger.info("Thread 'syncfiles' started ")
 
-        self.findAvailable()
+        self.find_available_clients()
         self.start_server()
 

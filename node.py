@@ -27,7 +27,7 @@ class Node(object):
         self.my_uname = uname
 
     @staticmethod
-    def getdestpath(filename, dest_uname):
+    def get_dest_path(filename, dest_uname):
         p = re.compile("(/home/[a-z]*/)")
 
         destpath = p.sub("/home/%s/" % dest_uname, filename)
@@ -36,9 +36,9 @@ class Node(object):
 
 
     @staticmethod
-    def pushfile(filename, dest_uname, dest_ip):
+    def push_file(filename, dest_uname, dest_ip):
         """push file 'filename' to the destination """
-        proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, Node.getdestpath(filename, dest_uname))])
+        proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, Node.get_dest_path(filename, dest_uname))])
         returnStatus = proc.wait()
         logger.debug("returned status %s",returnStatus)
 

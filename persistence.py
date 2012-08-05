@@ -34,7 +34,7 @@ class PersistentSet(object):
     def list(self):
         return list(self.set)
 
-    def getModifiedTimestamp(self):
+    def get_modified_timestamp(self):
         try:
             pkl_object = open(self.pkl_filename, 'rb')
         except IOError as e:
@@ -56,7 +56,7 @@ class PersistentSet(object):
 #            else:
 #                raise
 
-    def updateModifiedTimestamp(self):
+    def update_modified_timestamp(self):
         """
         update last sync time
         """

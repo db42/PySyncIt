@@ -59,30 +59,30 @@ class Client(Node):
         self.watch_dirs = watch_dirs
         self.server_available = True
 
-    def pushfile(self, filename, dest_uname, dest_ip):
+    def push_file(self, filename, dest_uname, dest_ip):
         """
         push file 'filename' to the destination
         """
-        dest_file = Node.getdestpath(filename, dest_uname)
+        dest_file = Node.get_dest_path(filename, dest_uname)
         proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, dest_file)])
         returnStatus = proc.wait()
         logger.debug("returned status %s", returnStatus)
         #CLIENT: update the pulledfiles set
         #self.pulledfiles.add(my_file)
 
-    def pullfile(self, filename, source_uname, source_ip):
+    def pull_file(self, filename, source_uname, source_ip):
         """
         pull file 'filename' from the source
         """
         #pull file from the client 'source'
-        my_file = Node.getdestpath(filename, self.my_uname)
+        my_file = Node.get_dest_path(filename, self.my_uname)
         #CLIENT: update the pulledfiles set
         self.pulled_files.add(my_file)
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
         returnStatus = proc.wait()
         logger.debug("returned status %s", returnStatus)
 
-    def getPublicKey(self):
+    def get_public_key(self):
         """
         Return public key of this client
         """
@@ -103,7 +103,7 @@ class Client(Node):
 
         return pubKey
 
-    def findModified(self):
+    def find_modified(self):
         """
         find all those files which have been modified when sync demon was not running
         """
@@ -119,12 +119,12 @@ class Client(Node):
                 logger.debug("checked file if modified before client was running: %s", file_path)
                 mtime = os.path.getmtime(file_path)
                 #TODO save and restore last_synctime
-                if mtime > self.mfiles.getModifiedTimestamp():
+                if mtime > self.mfiles.get_modified_timestamp():
                     logger.debug("modified before client was running %s", file_path)
                     self.mfiles.add(file_path)
 
     #Thread to sync all modified files.
-    def syncfiles(self):
+    def sync_files(self):
         """Sync all the files present in the mfiles set and push this set"""
         mfiles = self.mfiles
         while True:
@@ -134,17 +134,17 @@ class Client(Node):
                     logger.info("push file to server %s" , filename)
                     # Call the server to pull this file
                     server_uname, server_ip, server_port = self.server
-                    self.pushfile(filename, server_uname, server_ip)
-                    rpc.updatefile(server_ip, server_port, filename, self.my_uname, self.my_ip)
+                    self.push_file(filename, server_uname, server_ip)
+                    rpc.update_file(server_ip, server_port, filename, self.my_uname, self.my_ip)
                     mfiles.remove(filename)
 
 
-                self.mfiles.updateModifiedTimestamp()
+                self.mfiles.update_modified_timestamp()
             except KeyboardInterrupt:
                 break
 
     #Thread to watch files.
-    def watchfiles(self):
+    def watch_files(self):
         wm = WatchManager()
         # watched events
         mask = pyinotify.IN_DELETE | pyinotify.IN_CREATE | pyinotify.IN_MODIFY
@@ -165,11 +165,11 @@ class Client(Node):
 
     def activate_client(self):
         """ Start threads to find and sync modified files """
-        sync_thread = threading.Thread(target=self.syncfiles)
+        sync_thread = threading.Thread(target=self.sync_files)
         sync_thread.start()
         logger.info("Thread 'syncfiles' started ")
 
-        watch_thread = threading.Thread(target=self.watchfiles)
+        watch_thread = threading.Thread(target=self.watch_files)
         watch_thread.start()
         logger.info("Thread 'watchfiles' started ")
 
@@ -188,4 +188,4 @@ class Client(Node):
         logger.debug("find modified files")
         #Find Modified
         #TODO
-        self.findModified()
+        self.find_modified()
