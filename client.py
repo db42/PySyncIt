@@ -51,12 +51,11 @@ class Client(Node):
     """ Client class"""
 
     def __init__(self, role, ip, port, uname, watch_dirs, server):
-        super(Client, self).__init__(role, ip, port, uname)
+        super(Client, self).__init__(role, ip, port, uname, watch_dirs)
         self.server = server
         self.mfiles = PersistentSet(pkl_filename = 'client.pkl') #set() #set of modified files
         self.rfiles = set() #set of removed files
         self.pulled_files = set()
-        self.watch_dirs = watch_dirs
         self.server_available = True
 
     def push_file(self, filename, dest_uname, dest_ip):
@@ -177,6 +176,7 @@ class Client(Node):
 
     def activate(self):
         """ Activate Client Node """
+        super(Client, self).activate()
         #Mark availability
         server_uname, server_ip, server_port = self.server
 

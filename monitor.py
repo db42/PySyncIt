@@ -23,16 +23,6 @@ def setup_logging():
     logger.addHandler(handler)
 
 
-def ensure_dir(dirs, user_name):
-    """
-    create directories to be synced if not exist
-    """
-    for dir in dirs:
-        my_dir = Node.get_dest_path(dir, user_name)
-        if not os.path.isdir(my_dir):
-            os.makedirs(my_dir)
-
-
 def main():
     #use argparse to get role, ip, uname
     parser = argparse.ArgumentParser(
@@ -66,16 +56,15 @@ def main():
     watch_dirs = []
     for key, value in config.items('syncit.dirs'):
         watch_dirs.append(os.path.expanduser(value))
-
-    ensure_dir(watch_dirs, args.uname)
     logger.debug( "watched dirs %s" ,watch_dirs)
+
     #TODO try to remove if-else using OO
     if (args.role == 'server'):
         clients = []
         for key, value in config.items('syncit.clients'):
             client_uname, client_ip, client_port = value.split(',')
             clients.append(ClientData(client_uname, client_ip, int(client_port)))
-        node = Server(args.role, ip = args.ip, port = int(args.port), uname = args.uname, clients = clients)
+        node = Server(args.role, ip = args.ip, port = int(args.port), uname = args.uname, watch_dirs=watch_dirs, clients = clients)
     else:
 
         server_uname, server_ip, server_port = config.get('syncit.server', 'server', 1).split(',')

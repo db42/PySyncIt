@@ -1,5 +1,6 @@
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 import logging
+import os
 import re
 import subprocess
 
@@ -20,11 +21,12 @@ class Handler(SimpleXMLRPCRequestHandler):
 class Node(object):
     """Base class for client and server"""
 
-    def __init__(self, role , ip, port, uname):
+    def __init__(self, role , ip, port, uname, watch_dirs):
         self.role = role
         self.my_ip = ip
         self.port = port
         self.my_uname = uname
+        self.watch_dirs = watch_dirs
 
     @staticmethod
     def get_dest_path(filename, dest_uname):
@@ -42,6 +44,16 @@ class Node(object):
         return_status = proc.wait()
         logger.debug("returned status %s",return_status)
 
+    def ensure_dir(self):
+        """
+        create directories to be synced if not exist
+        """
+        user_name = self.my_uname
+        for dir in self.watch_dirs:
+            my_dir = Node.get_dest_path(dir, user_name)
+            if not os.path.isdir(my_dir):
+                os.makedirs(my_dir)
+
 
     def start_server(self):
         """ Start RPC Server on each node """
@@ -56,6 +68,8 @@ class Node(object):
 
         #TODO add support to sync more folders
 
+    def activate(self):
+        self.ensure_dir()
 #    def add_folder(self, src):
 #        """add src to the list of synced folders;Put a monitor on this too"""
 

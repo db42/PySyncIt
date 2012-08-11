@@ -24,8 +24,8 @@ class ClientData(object):
 
 class Server(Node):
     """ Server class"""
-    def __init__(self, role, ip, uname, port, clients):
-        super(Server, self).__init__(role, ip, port, uname)
+    def __init__(self, role, ip, uname, port, watch_dirs, clients):
+        super(Server, self).__init__(role, ip, port, uname, watch_dirs)
         self.clients = clients
 
     def update_file(self, filename, source_uname, source_ip, source_port):
@@ -93,6 +93,7 @@ class Server(Node):
 
     def activate(self):
         """ Activate Server Node """
+        super(Server, self).activate()
         sync_thread = threading.Thread(target=self.sync_files)
         sync_thread.start()
         logger.info("Thread 'syncfiles' started ")
