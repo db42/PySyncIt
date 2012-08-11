@@ -94,10 +94,5 @@ class Server(Node):
     def activate(self):
         """ Activate Server Node """
         super(Server, self).activate()
-        sync_thread = threading.Thread(target=self.sync_files)
-        sync_thread.start()
-        logger.info("Thread 'syncfiles' started ")
-
         self.find_available_clients()
-        self.start_server()
 

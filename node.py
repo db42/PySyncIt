@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import subprocess
+import threading
 
 __author__ = 'dushyant'
 
@@ -54,22 +55,24 @@ class Node(object):
             if not os.path.isdir(my_dir):
                 os.makedirs(my_dir)
 
-
     def start_server(self):
         """ Start RPC Server on each node """
         server = SimpleXMLRPCServer(("0.0.0.0", self.port), allow_none =True)
         server.register_instance(self)
         server.register_introspection_functions()
-#        rpc_thread = threading.Thread(target=server.serve_forever())
-#        rpc_thread.start()
+        rpc_thread = threading.Thread(target=server.serve_forever)
+        rpc_thread.start()
         logger.debug("server functions on rpc %s", server.funcs.items())
         logger.info("Started RPC server thread. Listening on port %s..." , self.port)
-        server.serve_forever()
 
-        #TODO add support to sync more folders
+
+    def start_sync_thread(self):
+        sync_thread = threading.Thread(target=self.sync_files)
+        sync_thread.start()
+        logger.info("Thread 'syncfiles' started ")
 
     def activate(self):
         self.ensure_dir()
-#    def add_folder(self, src):
-#        """add src to the list of synced folders;Put a monitor on this too"""
+        self.start_sync_thread()
+        self.start_server()
 

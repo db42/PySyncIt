@@ -164,30 +164,21 @@ class Client(Node):
                 notifier.stop()
                 break
 
-    def activate_client(self):
-        """ Start threads to find and sync modified files """
-        sync_thread = threading.Thread(target=self.sync_files)
-        sync_thread.start()
-        logger.info("Thread 'syncfiles' started ")
-
+    def start_watch_thread(self):
+        """ Start threads to find modified files """
         watch_thread = threading.Thread(target=self.watch_files)
         watch_thread.start()
         logger.info("Thread 'watchfiles' started ")
 
-    def activate(self):
-        """ Activate Client Node """
-        super(Client, self).activate()
-        #Mark availability
+    def mark_presence(self):
         server_uname, server_ip, server_port = self.server
-
-        self.activate_client()
-        rpc_thread = threading.Thread(target=self.start_server)
-        rpc_thread.start()
-#        self.start_server()
-
         logger.debug("client call to mark available to the server")
         rpc.mark_available(server_ip, server_port, self.my_ip, self.port)
         logger.debug("find modified files")
-        #Find Modified
-        #TODO
+
+    def activate(self):
+        """ Activate Client Node """
+        super(Client, self).activate()
+        self.start_watch_thread()
+        self.mark_presence()
         self.find_modified()
