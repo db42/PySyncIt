@@ -6,13 +6,6 @@ import os
 from server import Server, ClientData
 from client import Client
 
-class FileData(object):
-
-    def __init__(self, file_name, time, owner):
-        self.name = file_name
-        self.time = time
-        self.owner = owner
-
 
 def setup_logging():
     logger = logging.getLogger('syncIt')

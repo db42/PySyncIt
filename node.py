@@ -19,6 +19,7 @@ class Handler(SimpleXMLRPCRequestHandler):
             traceback.print_exc()
             raise
 
+
 class Node(object):
     """Base class for client and server"""
 

@@ -5,6 +5,12 @@ import time
 
 __author__ = 'dushyant'
 
+class FileData(object):
+
+    def __init__(self, file_name, time):
+        self.name = file_name
+        self.time = time
+
 
 class PersistentSet(object):
     """
@@ -65,4 +71,20 @@ class PersistentSet(object):
         #push current time
         pickle.dump(time.time, pkl_object)
         pkl_object.close()
+
+
+class FilesPersistentSet(PersistentSet):
+    """
+    override set to add persistence using pickle
+    """
+    def __init__(self, pkl_filename):
+        super(FilesPersistentSet, self).__init__(pkl_filename)
+
+    def add(self, file_name):
+        super(FilesPersistentSet, self).add(FileData(file_name, time.time()))
+
+    def remove(self, file_name):
+        for filedata in list(self.set):
+            if file_name == filedata.name:
+                self.set.remove(filedata)
 

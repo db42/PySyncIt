@@ -7,7 +7,7 @@ import time
 import threading
 import os
 from node import Node
-from persistence import PersistentSet
+from persistence import FileData, FilesPersistentSet
 
 __author__ = 'dushyant'
 
@@ -54,7 +54,7 @@ class Client(Node):
     def __init__(self, role, ip, port, uname, watch_dirs, server):
         super(Client, self).__init__(role, ip, port, uname, watch_dirs)
         self.server = server
-        self.mfiles = PersistentSet(pkl_filename = 'client.pkl') #set() #set of modified files
+        self.mfiles = FilesPersistentSet(pkl_filename = 'client.pkl') #set() #set of modified files
         self.rfiles = set() #set of removed files
         self.pulled_files = set()
         self.server_available = True
@@ -118,7 +118,8 @@ class Client(Node):
         while True:
             try:
                 time.sleep(10)
-                for filename in mfiles.list():
+                for filedata in mfiles.list():
+                    filename = filedata.name
                     logger.info("push file to server %s" , filename)
                     server_uname, server_ip, server_port = self.server
                     dest_file = rpc.req_push_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
