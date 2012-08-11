@@ -24,7 +24,7 @@ class ClientData(object):
 
 class Server(Node):
     """ Server class"""
-    def __init__(self, role, ip, uname, port, watch_dirs, clients):
+    def __init__(self, role, ip, port, uname, watch_dirs, clients):
         super(Server, self).__init__(role, ip, port, uname, watch_dirs)
         self.clients = clients
 

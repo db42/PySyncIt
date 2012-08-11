@@ -2,7 +2,6 @@ import argparse
 import logging
 import ConfigParser
 import os
-from node import Node
 
 from server import Server, ClientData
 from client import Client
@@ -23,8 +22,28 @@ def setup_logging():
     logger.addHandler(handler)
 
 
+def get_watch_dirs(config):
+    watch_dirs = []
+    for key, value in config.items('syncit.dirs'):
+        watch_dirs.append(os.path.expanduser(value))
+    return watch_dirs
+
+
+def get_clients(config):
+    clients = []
+    for key, value in config.items('syncit.clients'):
+        client_uname, client_ip, client_port = value.split(',')
+        clients.append(ClientData(client_uname, client_ip, int(client_port)))
+    return clients
+
+
+def get_server_tuple(config):
+    server_uname, server_ip, server_port = config.get('syncit.server', 'server', 1).split(',')
+    return (server_uname, server_ip, server_port)
+
+
 def main():
-    #use argparse to get role, ip, uname
+    #use argparse to get role, ip, port and user name
     parser = argparse.ArgumentParser(
         description="""PySyncIt""",
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -48,27 +67,15 @@ def main():
     logger = logging.getLogger('syncIt')
     logger.info('Logging started')
 
-    #get parameters from config file
+    #Read config file
     config = ConfigParser.ConfigParser()
     config.read('syncit.cfg')
 
-    #Get dirs to watch
-    watch_dirs = []
-    for key, value in config.items('syncit.dirs'):
-        watch_dirs.append(os.path.expanduser(value))
-    logger.debug( "watched dirs %s" ,watch_dirs)
-
-    #TODO try to remove if-else using OO
     if (args.role == 'server'):
-        clients = []
-        for key, value in config.items('syncit.clients'):
-            client_uname, client_ip, client_port = value.split(',')
-            clients.append(ClientData(client_uname, client_ip, int(client_port)))
-        node = Server(args.role, ip = args.ip, port = int(args.port), uname = args.uname, watch_dirs=watch_dirs, clients = clients)
+        node = Server(args.role, args.ip, int(args.port), args.uname, get_watch_dirs(config), get_clients(config))
     else:
+        node = Client(args.role, args.ip, int(args.port), args.uname, get_watch_dirs(config), get_server_tuple(config))
 
-        server_uname, server_ip, server_port = config.get('syncit.server', 'server', 1).split(',')
-        node = Client(role = args.role, ip = args.ip, port = int(args.port), uname = args.uname, watch_dirs=watch_dirs, server = (server_uname, server_ip, server_port))
     node.activate()
     
 if __name__ == "__main__":
