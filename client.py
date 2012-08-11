@@ -59,12 +59,13 @@ class Client(Node):
         self.pulled_files = set()
         self.server_available = True
 
-    def push_file(self, filename, dest_uname, dest_ip):
+    def push_file(self, filename, dest_file, dest_uname, dest_ip):
         """push file 'filename' to the destination"""
-        dest_file = Node.get_dest_path(filename, dest_uname)
+#        dest_file = Node.get_dest_path(filename, dest_uname)
         proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, dest_file)])
-        return_status = proc.wait()
-        logger.debug("returned status %s", return_status)
+        push_status = proc.wait()
+        logger.debug("returned status %s", push_status)
+        return push_status
 
     def pull_file(self, filename, source_uname, source_ip):
         """pull file 'filename' from the source"""
@@ -120,13 +121,18 @@ class Client(Node):
                 for filename in mfiles.list():
                     logger.info("push file to server %s" , filename)
                     server_uname, server_ip, server_port = self.server
-                    self.push_file(filename, server_uname, server_ip)
-                    rpc_status = rpc.update_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
+                    dest_file = rpc.req_push_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
+                    logger.debug("destination file name %s", dest_file)
+                    if dest_file is None:
+                        break
+                    push_status = self.push_file(filename, dest_file, server_uname, server_ip)
+                    if (push_status < 0):
+                        break
+                    rpc_status = rpc.ack_push_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
+
                     if rpc_status is None:
-                        continue
+                        break
                     mfiles.remove(filename)
-
-
                 self.mfiles.update_modified_timestamp()
             except KeyboardInterrupt:
                 break

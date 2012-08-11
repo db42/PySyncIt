@@ -26,7 +26,13 @@ class Server(Node):
         super(Server, self).__init__(role, ip, port, uname, watch_dirs)
         self.clients = clients
 
-    def update_file(self, filename, source_uname, source_ip, source_port):
+    def req_push_file(self, filename, source_uname, source_ip, source_port):
+        """Mark this file as to be notified to clients - this file 'filename' has been modified, pull the latest copy"""
+        #SERVER: Call clients to pull this file
+        my_file = Node.get_dest_path(filename, self.my_uname)
+        return my_file
+
+    def ack_push_file(self, filename, source_uname, source_ip, source_port):
         """Mark this file as to be notified to clients - this file 'filename' has been modified, pull the latest copy"""
         #SERVER: Call clients to pull this file
         my_file = Node.get_dest_path(filename, self.my_uname)
