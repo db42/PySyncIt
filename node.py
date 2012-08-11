@@ -46,9 +46,7 @@ class Node(object):
         logger.debug("returned status %s",return_status)
 
     def ensure_dir(self):
-        """
-        create directories to be synced if not exist
-        """
+        """create directories to be synced if not exist"""
         user_name = self.my_uname
         for dir in self.watch_dirs:
             my_dir = Node.get_dest_path(dir, user_name)
@@ -56,7 +54,7 @@ class Node(object):
                 os.makedirs(my_dir)
 
     def start_server(self):
-        """ Start RPC Server on each node """
+        """Start RPC Server on each node """
         server = SimpleXMLRPCServer(("0.0.0.0", self.port), allow_none =True)
         server.register_instance(self)
         server.register_introspection_functions()

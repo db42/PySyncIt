@@ -12,9 +12,7 @@ __author__ = 'dushyant'
 logger = logging.getLogger('syncIt')
 
 class ClientData(object):
-    """
-    Data corresponding to each client residing in server object
-    """
+    """Data corresponding to each client residing in server object"""
     def __init__(self, client_uname, client_ip, client_port):
         self.available = False
         self.mfiles = PersistentSet('server-%s.pkl'%(client_uname))
@@ -23,13 +21,13 @@ class ClientData(object):
         self.port = client_port
 
 class Server(Node):
-    """ Server class"""
+    """Server class"""
     def __init__(self, role, ip, port, uname, watch_dirs, clients):
         super(Server, self).__init__(role, ip, port, uname, watch_dirs)
         self.clients = clients
 
     def update_file(self, filename, source_uname, source_ip, source_port):
-        """Notify clients that this file 'filename' has been modified by the source"""
+        """Mark this file as to be notified to clients - this file 'filename' has been modified, pull the latest copy"""
         #SERVER: Call clients to pull this file
         my_file = Node.get_dest_path(filename, self.my_uname)
         for client in self.clients:
@@ -41,6 +39,7 @@ class Server(Node):
                 logger.debug("add file to modified list")
 
     def sync_files(self):
+        """Actual call to clients to pull files"""
         while True:
             try:
                 time.sleep(10)
@@ -48,7 +47,6 @@ class Server(Node):
                     logger.debug( "list of files for client %s, availability %s",client.mfiles.list(), client.available)
                     if client.available:
                         for file in client.mfiles.list():
-                            # actual call to client to pull file
                             rpc_status = rpc.pull_file(client.ip, client.port, file, self.my_uname, self.my_ip)
 
                             if rpc_status is None:
@@ -60,7 +58,7 @@ class Server(Node):
                 break
 
 
-    def mark_available(self, client_ip, client_port):
+    def mark_presence(self, client_ip, client_port):
         """Mark client as available"""
         logger.debug("mark available call received")
         for client in self.clients:

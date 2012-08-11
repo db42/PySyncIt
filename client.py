@@ -15,7 +15,8 @@ logger = logging.getLogger('syncIt')
 
 #Find which files to sync
 class PTmp(ProcessEvent):
-    """    Find which files to sync    """
+    """Find which files to sync"""
+
     def __init__(self, mfiles, rfiles, pulledfiles):
         self.mfiles = mfiles
         self.rfiles = rfiles
@@ -48,7 +49,7 @@ class PTmp(ProcessEvent):
             self.pulled_files.remove(filename)
 
 class Client(Node):
-    """ Client class"""
+    """Client class"""
 
     def __init__(self, role, ip, port, uname, watch_dirs, server):
         super(Client, self).__init__(role, ip, port, uname, watch_dirs)
@@ -59,32 +60,22 @@ class Client(Node):
         self.server_available = True
 
     def push_file(self, filename, dest_uname, dest_ip):
-        """
-        push file 'filename' to the destination
-        """
+        """push file 'filename' to the destination"""
         dest_file = Node.get_dest_path(filename, dest_uname)
         proc = subprocess.Popen(['scp', filename, "%s@%s:%s" % (dest_uname, dest_ip, dest_file)])
         return_status = proc.wait()
         logger.debug("returned status %s", return_status)
-        #CLIENT: update the pulledfiles set
-        #self.pulledfiles.add(my_file)
 
     def pull_file(self, filename, source_uname, source_ip):
-        """
-        pull file 'filename' from the source
-        """
-        #pull file from the client 'source'
+        """pull file 'filename' from the source"""
         my_file = Node.get_dest_path(filename, self.my_uname)
-        #CLIENT: update the pulledfiles set
         self.pulled_files.add(my_file)
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
         return_status = proc.wait()
         logger.debug("returned status %s", return_status)
 
     def get_public_key(self):
-        """
-        Return public key of this client
-        """
+        """Return public key of this client"""
         pubkey = None
         pubkey_dirname = os.path.join("/home",self.my_uname,".ssh")
         logger.debug("public key directory %s", pubkey_dirname)
@@ -103,9 +94,7 @@ class Client(Node):
         return pubkey
 
     def find_modified(self):
-        """
-        find all those files which have been modified when sync demon was not running
-        """
+        """Find all those files which have been modified when sync demon was not running"""
         for directory in self.watch_dirs:
             dirwalk = os.walk(directory)
 
@@ -122,7 +111,6 @@ class Client(Node):
                     logger.debug("modified before client was running %s", file_path)
                     self.mfiles.add(file_path)
 
-    #Thread to sync all modified files.
     def sync_files(self):
         """Sync all the files present in the mfiles set and push this set"""
         mfiles = self.mfiles
@@ -131,7 +119,6 @@ class Client(Node):
                 time.sleep(10)
                 for filename in mfiles.list():
                     logger.info("push file to server %s" , filename)
-                    # Call the server to pull this file
                     server_uname, server_ip, server_port = self.server
                     self.push_file(filename, server_uname, server_ip)
                     rpc_status = rpc.update_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
@@ -144,8 +131,8 @@ class Client(Node):
             except KeyboardInterrupt:
                 break
 
-    #Thread to watch files.
     def watch_files(self):
+        """keep a watch on files present in sync directories"""
         wm = WatchManager()
         # watched events
         mask = pyinotify.IN_DELETE | pyinotify.IN_CREATE | pyinotify.IN_MODIFY
@@ -165,7 +152,7 @@ class Client(Node):
                 break
 
     def start_watch_thread(self):
-        """ Start threads to find modified files """
+        """Start threads to find modified files """
         watch_thread = threading.Thread(target=self.watch_files)
         watch_thread.start()
         logger.info("Thread 'watchfiles' started ")
@@ -173,7 +160,7 @@ class Client(Node):
     def mark_presence(self):
         server_uname, server_ip, server_port = self.server
         logger.debug("client call to mark available to the server")
-        rpc.mark_available(server_ip, server_port, self.my_ip, self.port)
+        rpc.mark_presence(server_ip, server_port, self.my_ip, self.port)
         logger.debug("find modified files")
 
     def activate(self):
