@@ -32,7 +32,7 @@ class Node(object):
 
     @staticmethod
     def get_dest_path(filename, dest_uname):
-        p = re.compile("(/home/[a-z]*/)")
+        p = re.compile("/home/[^ ]*/")
 
         destpath = p.sub("/home/%s/" % dest_uname, filename)
         logger.debug("destpath %s" + destpath)
