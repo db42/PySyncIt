@@ -1,4 +1,5 @@
 import logging
+import re
 import threading
 import time
 import errno
@@ -11,6 +12,15 @@ import rpc
 __author__ = 'dushyant'
 
 logger = logging.getLogger('syncIt')
+
+
+def is_collision_file(filename):
+    backup_file_pattern = re.compile(r"\.backup\.[1-9]+\.")
+    if re.search(backup_file_pattern, filename) is None:
+        return False
+    else:
+        return True
+
 
 class ClientData(object):
     """Data corresponding to each client residing in server object"""
@@ -40,16 +50,17 @@ class Server(Node):
         logger.debug("server filename %s returned for file %s", server_filename, filedata['name'])
         return server_filename
 
-    def ack_push_file(self, filename, source_uname, source_ip, source_port):
+    def ack_push_file(self, server_filename, source_uname, source_ip, source_port):
         """Mark this file as to be notified to clients - this file 'filename' has been modified, pull the latest copy"""
         #SERVER: Call clients to pull this file
-        my_file = Node.get_dest_path(filename, self.my_uname)
+        if is_collision_file(server_filename):
+            return
         for client in self.clients:
             logger.debug("tuple %s : %s",(client.ip, client.port), (source_ip, source_port))
             if (client.ip, client.port) == (source_ip, source_port):
                 continue
             else:
-                client.mfiles.add(my_file)
+                client.mfiles.add(server_filename)
                 logger.debug("add file to modified list")
 
     def check_collision(self, filedata):

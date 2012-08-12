@@ -13,6 +13,7 @@ __author__ = 'dushyant'
 
 logger = logging.getLogger('syncIt')
 
+
 #Find which files to sync
 class PTmp(ProcessEvent):
     """Find which files to sync"""
@@ -129,7 +130,7 @@ class Client(Node):
                     push_status = self.push_file(filename, dest_file, server_uname, server_ip)
                     if (push_status < 0):
                         break
-                    rpc_status = rpc.ack_push_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
+                    rpc_status = rpc.ack_push_file(server_ip, server_port, dest_file, self.my_uname, self.my_ip, self.port)
 
                     if rpc_status is None:
                         break
