@@ -43,7 +43,7 @@ class Server(Node):
         my_file = Node.get_dest_path(filedata['name'], self.username)
         #check if there is a conflict
         if self.check_collision(filedata):
-            server_filename = my_file+'.backup.'+str(filedata['time'])
+            server_filename = "%s.backup.%s.%s.%s:%s"%(my_file, filedata['time'], source_uname, source_ip, source_port)
         else:
             server_filename = my_file
 
