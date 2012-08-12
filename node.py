@@ -35,7 +35,7 @@ class Node(object):
         p = re.compile("/home/[^ ]*/")
 
         destpath = p.sub("/home/%s/" % dest_uname, filename)
-        logger.debug("destpath %s" + destpath)
+        logger.debug("destpath %s", destpath)
         return destpath
 
 
