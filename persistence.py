@@ -80,8 +80,8 @@ class FilesPersistentSet(PersistentSet):
     def __init__(self, pkl_filename):
         super(FilesPersistentSet, self).__init__(pkl_filename)
 
-    def add(self, file_name):
-        super(FilesPersistentSet, self).add(FileData(file_name, time.time()))
+    def add(self, file_name, modified_time):
+        super(FilesPersistentSet, self).add(FileData(file_name, modified_time))
 
     def remove(self, file_name):
         for filedata in list(self.set):

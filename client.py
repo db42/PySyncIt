@@ -25,7 +25,7 @@ class PTmp(ProcessEvent):
     def process_IN_CREATE(self, event):
         filename = os.path.join(event.path, event.name)
         if not self.pulled_files.__contains__(filename):
-            self.mfiles.add(filename)
+            self.mfiles.add(filename, time.time())
             logger.info("Created file: %s" ,  filename)
         else:
             pass
@@ -43,7 +43,7 @@ class PTmp(ProcessEvent):
     def process_IN_MODIFY(self, event):
         filename = os.path.join(event.path, event.name)
         if not self.pulled_files.__contains__(filename):
-            self.mfiles.add(filename)
+            self.mfiles.add(filename, time.time())
             logger.info("Modified file: %s" , filename)
         else:
             self.pulled_files.remove(filename)
@@ -110,7 +110,7 @@ class Client(Node):
                 #TODO save and restore last_synctime
                 if mtime > self.mfiles.get_modified_timestamp():
                     logger.debug("modified before client was running %s", file_path)
-                    self.mfiles.add(file_path)
+                    self.mfiles.add(file_path, mtime)
 
     def sync_files(self):
         """Sync all the files present in the mfiles set and push this set"""
