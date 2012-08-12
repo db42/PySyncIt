@@ -11,7 +11,7 @@ def setup_logging():
     logger = logging.getLogger('syncIt')
     #handler = logging.FileHandler('/tmp/syncIt.log')
     handler = logging.StreamHandler()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
 
