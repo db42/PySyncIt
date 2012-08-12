@@ -120,9 +120,9 @@ class Client(Node):
                 time.sleep(10)
                 for filedata in mfiles.list():
                     filename = filedata.name
-                    logger.info("push file to server %s" , filename)
+                    logger.info("push filedata object to server %s" , filedata)
                     server_uname, server_ip, server_port = self.server
-                    dest_file = rpc.req_push_file(server_ip, server_port, filename, self.my_uname, self.my_ip, self.port)
+                    dest_file = rpc.req_push_file(server_ip, server_port, filedata, self.my_uname, self.my_ip, self.port)
                     logger.debug("destination file name %s", dest_file)
                     if dest_file is None:
                         break

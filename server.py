@@ -1,6 +1,7 @@
 import logging
 import threading
 import time
+import errno
 from node import Node
 from persistence import PersistentSet
 import subprocess
@@ -26,11 +27,18 @@ class Server(Node):
         super(Server, self).__init__(role, ip, port, uname, watch_dirs)
         self.clients = clients
 
-    def req_push_file(self, filename, source_uname, source_ip, source_port):
+    def req_push_file(self, filedata, source_uname, source_ip, source_port):
         """Mark this file as to be notified to clients - this file 'filename' has been modified, pull the latest copy"""
-        #SERVER: Call clients to pull this file
-        my_file = Node.get_dest_path(filename, self.my_uname)
-        return my_file
+        logger.debug("server filedata %s %s",filedata['name'], filedata.keys())
+        my_file = Node.get_dest_path(filedata['name'], self.my_uname)
+        #check if there is a conflict
+        if self.check_collision(filedata):
+            server_filename = my_file+'.backup.'+str(filedata['time'])
+        else:
+            server_filename = my_file
+
+        logger.debug("server filename %s returned for file %s", server_filename, filedata['name'])
+        return server_filename
 
     def ack_push_file(self, filename, source_uname, source_ip, source_port):
         """Mark this file as to be notified to clients - this file 'filename' has been modified, pull the latest copy"""
@@ -43,6 +51,21 @@ class Server(Node):
             else:
                 client.mfiles.add(my_file)
                 logger.debug("add file to modified list")
+
+    def check_collision(self, filedata):
+        my_file = Node.get_dest_path(filedata['name'], self.my_uname)
+        try:
+           collision_exist = os.path.getmtime(my_file) > filedata['time']
+           logger.debug("collision check: server time %s  client time %s", os.path.getmtime(my_file), filedata['time'])
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                collision_exist = False
+            else:
+                raise
+        logger.debug("collision check for file %s result %s", my_file, collision_exist)
+        return collision_exist
+
+
 
     def sync_files(self):
         """Actual call to clients to pull files"""
