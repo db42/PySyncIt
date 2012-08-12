@@ -48,11 +48,9 @@ class Node(object):
 
     def ensure_dir(self):
         """create directories to be synced if not exist"""
-        user_name = self.username
         for dir in self.watch_dirs:
-            my_dir = Node.get_dest_path(dir, user_name)
-            if not os.path.isdir(my_dir):
-                os.makedirs(my_dir)
+            if not os.path.isdir(dir):
+                os.makedirs(dir)
 
     def start_server(self):
         """Start RPC Server on each node """

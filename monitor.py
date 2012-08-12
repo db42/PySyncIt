@@ -2,23 +2,27 @@ import argparse
 import logging
 import ConfigParser
 import os
+from node import Node
 
 from server import Server, ClientData
 from client import Client
 
+logger = logging.getLogger('syncIt')
 
 def setup_logging():
-    logger = logging.getLogger('syncIt')
-    handler = logging.FileHandler('syncIt.log')
-#    handler = logging.StreamHandler()
+#    handler = logging.FileHandler('syncIt.log')
+    handler = logging.StreamHandler()
     logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
 
-def get_watch_dirs(config):
+def get_watch_dirs(config, user_name):
     watch_dirs = []
     for key, value in config.items('syncit.dirs'):
-        watch_dirs.append(os.path.expanduser(value))
+        dir = os.path.expanduser(value)
+        my_dir = Node.get_dest_path(dir, user_name)
+        watch_dirs.append(my_dir)
+    logger.debug("watched dirs %s", watch_dirs)
     return watch_dirs
 
 
@@ -65,9 +69,9 @@ def main():
     config.read('syncit.cfg')
 
     if (args.role == 'server'):
-        node = Server(args.role, args.ip, int(args.port), args.uname, get_watch_dirs(config), get_clients(config))
+        node = Server(args.role, args.ip, int(args.port), args.uname, get_watch_dirs(config, args.uname), get_clients(config))
     else:
-        node = Client(args.role, args.ip, int(args.port), args.uname, get_watch_dirs(config), get_server_tuple(config))
+        node = Client(args.role, args.ip, int(args.port), args.uname, get_watch_dirs(config, args.uname), get_server_tuple(config))
 
     node.activate()
     
