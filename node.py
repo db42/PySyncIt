@@ -32,9 +32,11 @@ class Node(object):
 
     @staticmethod
     def get_dest_path(filename, dest_uname):
-        p = re.compile("/home/[^ ]*/")
+        """ Replace username in filename with 'dest_uname'"""
+        user_dir_pattern = re.compile("/home/[^ ]*?/")
 
-        destpath = p.sub("/home/%s/" % dest_uname, filename)
+        if re.search(user_dir_pattern, filename):
+            destpath = user_dir_pattern.sub("/home/%s/" % dest_uname, filename)
         logger.debug("destpath %s", destpath)
         return destpath
 
