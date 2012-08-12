@@ -19,7 +19,7 @@ def setup_logging():
 def get_watch_dirs(config, user_name):
     watch_dirs = []
     for key, value in config.items('syncit.dirs'):
-        dir = os.path.expanduser(value)
+        dir = os.path.expanduser(value.strip())
         my_dir = Node.get_dest_path(dir, user_name)
         watch_dirs.append(my_dir)
     logger.debug("watched dirs %s", watch_dirs)
@@ -29,7 +29,8 @@ def get_watch_dirs(config, user_name):
 def get_clients(config):
     clients = []
     for key, value in config.items('syncit.clients'):
-        client_uname, client_ip, client_port = value.split(',')
+        words = value.split(',')
+        client_uname, client_ip, client_port = [word.strip() for word in words]
         clients.append(ClientData(client_uname, client_ip, int(client_port)))
     return clients
 
