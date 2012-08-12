@@ -9,8 +9,8 @@ from client import Client
 
 def setup_logging():
     logger = logging.getLogger('syncIt')
-    #handler = logging.FileHandler('/tmp/syncIt.log')
-    handler = logging.StreamHandler()
+    handler = logging.FileHandler('syncIt.log')
+#    handler = logging.StreamHandler()
     logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
