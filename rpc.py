@@ -31,14 +31,14 @@ def pull_file(dest_ip, dest_port, filename, source_uname, source_ip):
     rpc_connect.pull_file(filename, source_uname, source_ip)
 
 @safe_rpc
-def req_push_file(dest_ip, dest_port, filename, source_uname, source_ip, source_port):
+def req_push_file(dest_ip, dest_port, filedata, source_uname, source_ip, source_port):
     rpc_connect = xmlrpclib.ServerProxy("http://%s:%s/"% (dest_ip, dest_port), allow_none = True)
-    rpc_connect.req_push_file(filename, source_uname, source_ip, source_port)
+    return rpc_connect.req_push_file(filedata, source_uname, source_ip, source_port)
 
 @safe_rpc
 def ack_push_file(dest_ip, dest_port, filename, source_uname, source_ip, source_port):
     rpc_connect = xmlrpclib.ServerProxy("http://%s:%s/"% (dest_ip, dest_port), allow_none = True)
-    rpc_connect.ack_push_file(filename, source_uname, source_ip, source_port)
+    return rpc_connect.ack_push_file(filename, source_uname, source_ip, source_port)
 
 @safe_rpc
 def mark_presence(dest_ip, dest_port, source_ip, source_port):
