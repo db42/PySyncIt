@@ -70,7 +70,7 @@ class Client(Node):
 
     def pull_file(self, filename, source_uname, source_ip):
         """pull file 'filename' from the source"""
-        my_file = Node.get_dest_path(filename, self.my_uname)
+        my_file = Node.get_dest_path(filename, self.username)
         self.pulled_files.add(my_file)
         proc = subprocess.Popen(['scp', "%s@%s:%s" % (source_uname, source_ip, filename), my_file])
         return_status = proc.wait()
@@ -79,7 +79,7 @@ class Client(Node):
     def get_public_key(self):
         """Return public key of this client"""
         pubkey = None
-        pubkey_dirname = os.path.join("/home",self.my_uname,".ssh")
+        pubkey_dirname = os.path.join("/home",self.username,".ssh")
         logger.debug("public key directory %s", pubkey_dirname)
         for tuple in os.walk(pubkey_dirname):
             dirname, dirnames, filenames = tuple
@@ -123,14 +123,14 @@ class Client(Node):
                     filename = filedata.name
                     logger.info("push filedata object to server %s" , filedata)
                     server_uname, server_ip, server_port = self.server
-                    dest_file = rpc.req_push_file(server_ip, server_port, filedata, self.my_uname, self.my_ip, self.port)
+                    dest_file = rpc.req_push_file(server_ip, server_port, filedata, self.username, self.ip, self.port)
                     logger.debug("destination file name %s", dest_file)
                     if dest_file is None:
                         break
                     push_status = self.push_file(filename, dest_file, server_uname, server_ip)
                     if (push_status < 0):
                         break
-                    rpc_status = rpc.ack_push_file(server_ip, server_port, dest_file, self.my_uname, self.my_ip, self.port)
+                    rpc_status = rpc.ack_push_file(server_ip, server_port, dest_file, self.username, self.ip, self.port)
 
                     if rpc_status is None:
                         break
@@ -168,7 +168,7 @@ class Client(Node):
     def mark_presence(self):
         server_uname, server_ip, server_port = self.server
         logger.debug("client call to mark available to the server")
-        rpc.mark_presence(server_ip, server_port, self.my_ip, self.port)
+        rpc.mark_presence(server_ip, server_port, self.ip, self.port)
         logger.debug("find modified files")
 
     def activate(self):

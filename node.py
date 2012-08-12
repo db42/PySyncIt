@@ -25,9 +25,9 @@ class Node(object):
 
     def __init__(self, role , ip, port, uname, watch_dirs):
         self.role = role
-        self.my_ip = ip
+        self.ip = ip
         self.port = port
-        self.my_uname = uname
+        self.username = uname
         self.watch_dirs = watch_dirs
 
     @staticmethod
@@ -48,7 +48,7 @@ class Node(object):
 
     def ensure_dir(self):
         """create directories to be synced if not exist"""
-        user_name = self.my_uname
+        user_name = self.username
         for dir in self.watch_dirs:
             my_dir = Node.get_dest_path(dir, user_name)
             if not os.path.isdir(my_dir):

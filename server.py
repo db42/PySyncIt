@@ -40,7 +40,7 @@ class Server(Node):
     def req_push_file(self, filedata, source_uname, source_ip, source_port):
         """Mark this file as to be notified to clients - this file 'filename' has been modified, pull the latest copy"""
         logger.debug("server filedata %s %s",filedata['name'], filedata.keys())
-        my_file = Node.get_dest_path(filedata['name'], self.my_uname)
+        my_file = Node.get_dest_path(filedata['name'], self.username)
         #check if there is a conflict
         if self.check_collision(filedata):
             server_filename = my_file+'.backup.'+str(filedata['time'])
@@ -64,7 +64,7 @@ class Server(Node):
                 logger.debug("add file to modified list")
 
     def check_collision(self, filedata):
-        my_file = Node.get_dest_path(filedata['name'], self.my_uname)
+        my_file = Node.get_dest_path(filedata['name'], self.username)
         try:
            collision_exist = os.path.getmtime(my_file) > filedata['time']
            logger.debug("collision check: server time %s  client time %s", os.path.getmtime(my_file), filedata['time'])
@@ -87,7 +87,7 @@ class Server(Node):
                     logger.debug( "list of files for client %s, availability %s",client.mfiles.list(), client.available)
                     if client.available:
                         for file in client.mfiles.list():
-                            rpc_status = rpc.pull_file(client.ip, client.port, file, self.my_uname, self.my_ip)
+                            rpc_status = rpc.pull_file(client.ip, client.port, file, self.username, self.ip)
 
                             if rpc_status is None:
                                 client.available = False
@@ -115,7 +115,7 @@ class Server(Node):
             self.add_client_keys(client)
 
     def get_authfile(self):
-        return os.path.join("/home",self.my_uname,".ssh/authorized_keys")
+        return os.path.join("/home",self.username,".ssh/authorized_keys")
 
     def add_client_keys(self, client):
         """ Add public keys corresponding to user """
