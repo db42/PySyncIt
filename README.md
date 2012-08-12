@@ -28,14 +28,21 @@ All you need is python installed on your system and you are ready to go. However
 External Python Modules:
 ```
 pyinotify
+to-install: sudo apt-get install python-pyinotify
 ```
+
+#### Generating public ssh key
+
+As 'scp' is used to transfer files between server and client, every file transfer will require authentication.
+To escape entering password on each time, it's a good idea to generate your public ssh keys and the application will take care of everything.
+If you have a file with extension ```.pub``` in ```~/.ssh``` directory, you don't need to do anything.
+Otherwise, generate a new SSH key.
+
+For further details:
+https://help.github.com/articles/generating-ssh-keys
 
 ### Getting Started
 
-1. Install dependency:
-```
-sudo apt-get install python-pyinotify
-```
 1. git clone
 ```
 git clone git@github.com:db42/PySyncIt
