@@ -52,9 +52,9 @@ class Server(Node):
 
     def ack_push_file(self, server_filename, source_uname, source_ip, source_port):
         """Mark this file as to be notified to clients - this file 'filename' has been modified, pull the latest copy"""
-        #SERVER: Call clients to pull this file
         if is_collision_file(server_filename):
             return
+
         for client in self.clients:
             logger.debug("tuple %s : %s",(client.ip, client.port), (source_ip, source_port))
             if (client.ip, client.port) == (source_ip, source_port):
@@ -75,8 +75,6 @@ class Server(Node):
                 raise
         logger.debug("collision check for file %s result %s", my_file, collision_exist)
         return collision_exist
-
-
 
     def sync_files(self):
         """Actual call to clients to pull files"""
@@ -105,7 +103,6 @@ class Server(Node):
             if (client_ip, client_port) == (client.ip, client.port):
                 client.available = True
                 logger.debug("client with ip %s, marked available", client_ip)
-                #TODO (see,send) pending modified files for this client
                 self.add_client_keys(client)
 
     def find_available_clients(self):
