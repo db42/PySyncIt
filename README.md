@@ -55,6 +55,9 @@ git clone git@github.com:db42/PySyncIt
     * Setting up configuration file - syncit.cfg.
     Sample configurations have been provided to set various parameters (username, ip address and port) of server and client machines.
     * execute monitor.py
+    ```
+    python monitor.py -ip <local ip address> -port <port number> -uname <user name> -role <client or server>
+    ```
     ##### Client
     ```
     python monitor.py -ip 172.16.1.160 -port 8082 -uname dushyant -role client
@@ -93,8 +96,14 @@ SERVER:
 #### Code Structure:
 1. syncit.cfg: Configuration file.
 
-2. Node.py contains the base class for Server and Client. Server.py and Client.py extends the base class.
+2. node.py contains the base class for Server and Client. server.py and client.py contains Server and Client classes which extend the base class.
 
 3. rpc.py: helper class for rpc functions.
 
-4. PersistentSet.py: Implements persistent data structure using pickle.
+4. persistence.py: Implements persistent data structure using pickle.
+
+5. monitor.py: Main executable file
+
+### Contribution/Suggestions
+Feel free to test, fork and give suggestions. (Note: please do not use important files/directories to experiment with this application.)
+
