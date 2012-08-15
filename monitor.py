@@ -67,6 +67,7 @@ def main():
 
     #Read config file
     config = ConfigParser.ConfigParser()
+    logger.info("Using config file: syncit.cfg")
     config.read('syncit.cfg')
 
     if (args.role == 'server'):
