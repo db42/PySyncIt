@@ -18,7 +18,7 @@ def safe_rpc(fn):
 
             return result
         except socket.error as e:
-            if e.errno == errno.ECONNREFUSED:
+            if e.errno == errno.ECONNREFUSED or e.errno == errno.EHOSTUNREACH:
                 logger.critical("Problem connecting to rpc - no rpc server running. function: %s", fn.func_name)
                 return None #rpc request failed
             else:
@@ -60,7 +60,7 @@ def find_available(dest_ip, dest_port):
         rpc_connect.system.listMethods()
         return True
     except socket.error as e:
-        if e.errno == errno.ECONNREFUSED:
+        if e.errno == errno.ECONNREFUSED or e.errno == errno.EHOSTUNREACH:
             return False
         else:
             raise
