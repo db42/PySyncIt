@@ -9,11 +9,12 @@ from client import Client
 
 logger = logging.getLogger('syncIt')
 
-def setup_logging():
-#    handler = logging.FileHandler('syncIt.log')
-    handler = logging.StreamHandler()
+def setup_logging(log_filename):
+    handler = logging.FileHandler(log_filename)
+#    handler = logging.StreamHandler()
     logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
+    print 'Logging started on file %s' % log_filename
 
 
 def get_watch_dirs(config, user_name):
@@ -47,23 +48,22 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter)
     
     parser.add_argument(
-        '-ip', help='Specify the ip address of this machine')
+        '-ip', help='Specify the ip address of this machine', required=True)
 
     parser.add_argument(
-        '-port', help='Specify the port of this machine to run rpc server')
+        '-port', help='Specify the port of this machine to run rpc server', required=True)
 
     parser.add_argument(
-        '-uname', help='Specify the user name of this machine')
+        '-uname', help='Specify the user name of this machine', required=True)
     
     parser.add_argument(
-        '-role', help='Specify the role of this machine - client or server')
+        '-role', help='Specify the role of this machine - client or server', required=True)
     
     args = parser.parse_args()
 
     #start logging
-    setup_logging()
+    setup_logging("syncit.log.%s-%s" % (args.ip, args.port));
     logger = logging.getLogger('syncIt')
-    logger.info('Logging started')
 
     #Read config file
     config = ConfigParser.ConfigParser()
